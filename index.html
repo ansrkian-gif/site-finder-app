@@ -554,18 +554,27 @@ main {
 .map-frame {
   display: block;
   position: relative;
-  height: 112px;
+  height: 140px;
   overflow: hidden;
   background: var(--bg-2);
 }
 
+.map-frame.route-map {
+  height: 170px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+}
+
 .map-frame iframe {
   width: 100%;
-  height: 152px;
+  height: 180px;
   margin-top: -20px;
   border: 0;
   pointer-events: none;
-  filter: saturate(0.85) contrast(1.05);
+}
+
+.map-frame.route-map iframe {
+  height: 210px;
 }
 
 .map-open {
@@ -1050,16 +1059,19 @@ function mapsUrl(site) {
 }
 
 function mapEmbedUrl(site) {
-  const padLat = 0.006;
-  const padLng = 0.008;
   return (
-    "https://www.openstreetmap.org/export/embed.html?bbox=" +
-    (site.lng - padLng) + "%2C" +
-    (site.lat - padLat) + "%2C" +
-    (site.lng + padLng) + "%2C" +
-    (site.lat + padLat) +
-    "&layer=mapnik&marker=" + site.lat + "%2C" + site.lng
+    "https://maps.google.com/maps?q=" +
+    site.lat +
+    "," +
+    site.lng +
+    "&t=k&z=17&hl=en&output=embed"
   );
+}
+
+function routeMapEmbedUrl(list) {
+  const origin = list[0].lat + "," + list[0].lng;
+  const rest = list.slice(1).map((site) => site.lat + "," + site.lng).join("+to:");
+  return "https://maps.google.com/maps?saddr=" + origin + "&daddr=" + rest + "&output=embed";
 }
 
 function shareMessage(site) {
@@ -1260,7 +1272,7 @@ function openDetail(site, fromSearch) {
     '<a class="map-frame" target="_blank" rel="noopener" href="' +
     mapsUrl(site) +
     '">' +
-    '<iframe title="Map preview" loading="lazy" src="' +
+    '<iframe title="Google map" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="' +
     mapEmbedUrl(site) +
     '"></iframe>' +
     '<span class="map-open">Open Google Maps</span></a>' +
@@ -1499,6 +1511,14 @@ function calculateRoute() {
   routeState.hidden = false;
 
   routeState.innerHTML =
+    '<article class="detail">' +
+    '<a class="map-frame route-map" target="_blank" rel="noopener" href="' +
+    directionsUrl(found) +
+    '">' +
+    '<iframe title="Google route map" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="' +
+    routeMapEmbedUrl(found) +
+    '"></iframe>' +
+    '<span class="map-open">Open Google Maps</span></a></article>' +
     '<article class="route-total"><dt>Total distance</dt><dd>' +
     formatDistance(totalKm) +
     "</dd></article>" +
