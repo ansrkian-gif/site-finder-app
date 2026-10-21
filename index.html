@@ -843,6 +843,13 @@ input[type="search"]::-webkit-search-cancel-button {
   border-color: #fb7185;
 }
 
+.stop-plus {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  font-size: 26px;
+}
+
 .stop-remove {
   width: 36px;
   height: 36px;
@@ -857,9 +864,22 @@ input[type="search"]::-webkit-search-cancel-button {
 
 .route-tools {
   display: grid;
-  grid-template-columns: 1fr 1.3fr;
+  grid-template-columns: 52px 1fr;
   gap: 8px;
   margin-top: 4px;
+}
+
+.add-plus {
+  width: 52px;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--gold);
+  color: var(--toast-ink);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  font-family: inherit;
 }
 
 .route-total {
@@ -973,10 +993,11 @@ input[type="search"]::-webkit-search-cancel-button {
     <form class="route-wrap" id="routeForm" hidden autocomplete="off">
       <div id="routeStops"></div>
       <div class="route-tools">
-        <button type="button" class="btn ghost" id="addStopBtn">Add site</button>
+        <button type="button" class="add-plus" id="addStopBtn" aria-label="Add another site">+</button>
         <button type="submit" class="btn maps">Get distances</button>
       </div>
-      <p class="hint">Enter Site 1, Site 2, Site 3 in order. Distance is calculated hop by hop.</p>
+      <p class="hint">Tap <strong>+</strong> to add Site 3, Site 4, and so on.</p>
+    </form>
 
     <main id="main">
       <section class="home" id="homeState">
@@ -1445,11 +1466,13 @@ function renderRouteStops(values) {
         ' ID" value="' +
         escapeHtml(value) +
         '" />' +
-        '<button type="button" class="stop-remove" data-remove="' +
-        index +
-        '" aria-label="Remove site"' +
-        (list.length <= 2 ? " hidden" : "") +
-        ">×</button>" +
+        (index === list.length - 1
+          ? '<button type="button" class="add-plus stop-plus" data-add="1" aria-label="Add another site">+</button>'
+          : '<button type="button" class="stop-remove" data-remove="' +
+            index +
+            '" aria-label="Remove site"' +
+            (list.length <= 2 ? " hidden" : "") +
+            ">×</button>") +
         "</div>"
       );
     })
@@ -1580,7 +1603,8 @@ if (starterChips) starterChips.addEventListener("click", onChipClick);
 
 lookupModeBtn.addEventListener("click", () => setMode("lookup"));
 routeModeBtn.addEventListener("click", () => setMode("route"));
-addStopBtn.addEventListener("click", () => {
+addStopBtn.addEventListener("click", addRouteStop);
+function addRouteStop() {
   const values = routeInputs().map((input) => input.value);
   if (values.length >= MAX_STOPS) {
     toast("Maximum " + MAX_STOPS + " sites");
@@ -1590,8 +1614,13 @@ addStopBtn.addEventListener("click", () => {
   renderRouteStops(values);
   const inputs = routeInputs();
   inputs[inputs.length - 1].focus();
-});
+}
+
 routeStopsEl.addEventListener("click", (event) => {
+  if (event.target.closest("[data-add]")) {
+    addRouteStop();
+    return;
+  }
   const btn = event.target.closest("[data-remove]");
   if (!btn) return;
   const values = routeInputs().map((input) => input.value);
