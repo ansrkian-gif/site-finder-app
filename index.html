@@ -756,6 +756,157 @@ input[type="search"]::-webkit-search-cancel-button {
   -webkit-appearance: none;
 }
 
+.mode-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin: 10px 16px 0;
+  padding: 4px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.mode-btn {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.mode-btn.active {
+  background: var(--bg-2);
+  color: var(--gold);
+}
+
+.route-wrap {
+  padding: 10px 16px 0;
+}
+
+.route-wrap .hint {
+  margin-top: 10px;
+}
+
+.route-stop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.route-num {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 1px solid var(--line);
+  color: var(--gold);
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.route-stop input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  padding: 0 12px;
+  font-size: 16px;
+  color: var(--text);
+  outline: none;
+  font-family: inherit;
+}
+
+.route-stop input:focus {
+  border-color: var(--gold);
+}
+
+.route-stop input.bad {
+  border-color: #fb7185;
+}
+
+.stop-remove {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.route-tools {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.route-total {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 16px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.route-total dt {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.route-total dd {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+
+.route-hop {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+.route-hop .from-to {
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.route-hop .km {
+  color: var(--gold);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.route-hop .meta {
+  grid-column: 1 / -1;
+  margin-top: 0;
+}
+
 </style>
 </head>
 <body>
@@ -783,6 +934,11 @@ input[type="search"]::-webkit-search-cancel-button {
       </div>
     </header>
 
+    <div class="mode-switch" role="tablist">
+      <button type="button" class="mode-btn active" id="lookupModeBtn" data-mode="lookup">Lookup</button>
+      <button type="button" class="mode-btn" id="routeModeBtn" data-mode="route">Route</button>
+    </div>
+
     <form class="search-wrap" id="searchForm" autocomplete="off">
       <label class="sr-only" for="query">Search site ID</label>
       <div class="search-box">
@@ -796,7 +952,7 @@ input[type="search"]::-webkit-search-cancel-button {
           type="search"
           inputmode="text"
           enterkeyhint="search"
-          placeholder="Search site ID"
+          placeholder="Site ID or 4578 to 4581"
           spellcheck="false"
           autocapitalize="characters"
           autocorrect="off"
@@ -804,6 +960,14 @@ input[type="search"]::-webkit-search-cancel-button {
         <button type="button" class="clear" id="clearBtn" hidden aria-label="Clear search">×</button>
       </div>
     </form>
+
+    <form class="route-wrap" id="routeForm" hidden autocomplete="off">
+      <div id="routeStops"></div>
+      <div class="route-tools">
+        <button type="button" class="btn ghost" id="addStopBtn">Add site</button>
+        <button type="submit" class="btn maps">Get distances</button>
+      </div>
+      <p class="hint">Enter Site 1, Site 2, Site 3 in order. Distance is calculated hop by hop.</p>
 
     <main id="main">
       <section class="home" id="homeState">
@@ -815,7 +979,7 @@ input[type="search"]::-webkit-search-cancel-button {
             </svg>
           </div>
           <h2>Find any site in seconds</h2>
-          <p class="hint">Search by ID like <strong>4578</strong> or candidate ID like <strong>4578T</strong>. Then open maps or share on WhatsApp.</p>
+          <p class="hint">Search by ID like <strong>4578</strong> or candidate ID like <strong>4578T</strong>. Use <strong>Route</strong> to measure Site 1 to Site 2 to Site 3.</p>
           <div class="chips starter" id="starterChips">
             <button type="button" class="chip" data-q="4578">4578</button>
             <button type="button" class="chip" data-q="4581">4581</button>
@@ -830,6 +994,7 @@ input[type="search"]::-webkit-search-cancel-button {
 
       <section id="resultsState" hidden></section>
       <section id="detailState" hidden></section>
+      <section id="routeState" hidden></section>
     </main>
   </div>
 
@@ -855,6 +1020,14 @@ const starterChips = document.getElementById("starterChips");
 const themeBtn = document.getElementById("themeBtn");
 const themeSheet = document.getElementById("themeSheet");
 const themeGrid = document.getElementById("themeGrid");
+const lookupModeBtn = document.getElementById("lookupModeBtn");
+const routeModeBtn = document.getElementById("routeModeBtn");
+const searchForm = document.getElementById("searchForm");
+const routeForm = document.getElementById("routeForm");
+const routeStopsEl = document.getElementById("routeStops");
+const routeState = document.getElementById("routeState");
+const addStopBtn = document.getElementById("addStopBtn");
+const MAX_STOPS = 10;
 const RECENT_KEY = "site-finder-recent";
 const THEME_KEY = "site-finder-theme";
 const THEMES = [
@@ -963,15 +1136,66 @@ function searchSites(rawQuery) {
   return exactId.concat(exactCand, starts, contains).slice(0, 40);
 }
 
+function findExactSite(raw) {
+  const q = normalize(raw);
+  if (!q) return null;
+  return sites.find((site) => normalize(site.id) === q || normalize(site.cand) === q) || null;
+}
+
+function haversineKm(a, b) {
+  const toRad = (deg) => (Number(deg) * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const lat1 = toRad(a.lat);
+  const lat2 = toRad(b.lat);
+  const h =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+function formatDistance(km) {
+  if (!Number.isFinite(km)) return "—";
+  if (km < 1) return Math.round(km * 1000) + " m";
+  return km.toFixed(2) + " km";
+}
+
+function directionsUrl(list) {
+  const pts = list.map((site) => site.lat + "," + site.lng);
+  const origin = pts[0];
+  const destination = pts[pts.length - 1];
+  let url =
+    "https://www.google.com/maps/dir/?api=1&origin=" +
+    origin +
+    "&destination=" +
+    destination;
+  if (pts.length > 2) {
+    url += "&waypoints=" + pts.slice(1, -1).join("%7C");
+  }
+  return url;
+}
+
+function routeShareMessage(found, hops, totalKm) {
+  const lines = ["Site route"];
+  hops.forEach((hop) => {
+    lines.push(hop.from.id + " → " + hop.to.id + ": " + formatDistance(hop.km));
+  });
+  lines.push("Total: " + formatDistance(totalKm));
+  lines.push("Map: " + directionsUrl(found));
+  return lines.join("\n");
+}
+
 function showHome() {
   homeState.hidden = false;
   resultsState.hidden = true;
   detailState.hidden = true;
+  routeState.hidden = true;
 }
 
 function showResults(items, query) {
   homeState.hidden = true;
   detailState.hidden = true;
+  routeState.hidden = true;
   resultsState.hidden = false;
 
   if (!items.length) {
@@ -1025,6 +1249,7 @@ function openDetail(site, fromSearch) {
   saveRecent(site);
   homeState.hidden = true;
   resultsState.hidden = true;
+  routeState.hidden = true;
   detailState.hidden = false;
 
   const onAir = site.onAir ? escapeHtml(site.onAir) : "Not recorded";
@@ -1084,7 +1309,7 @@ function openDetail(site, fromSearch) {
     '<div class="actions-secondary">' +
     '<button type="button" class="btn ghost" id="copyShare">Copy share</button>' +
     '<button type="button" class="btn ghost" id="copyCoords">Copy coords</button>' +
-    '<button type="button" class="btn ghost" id="copyAddress">Copy address</button>' +
+    '<button type="button" class="btn ghost" id="addToRoute">Add to route</button>' +
     "</div></div></article>";
 
   document.getElementById("copyShare").addEventListener("click", () => {
@@ -1093,8 +1318,8 @@ function openDetail(site, fromSearch) {
   document.getElementById("copyCoords").addEventListener("click", () => {
     copyText(site.lat + ", " + site.lng, "Coordinates copied");
   });
-  document.getElementById("copyAddress").addEventListener("click", () => {
-    copyText(site.address, "Address copied");
+  document.getElementById("addToRoute").addEventListener("click", () => {
+    addSiteToRoute(site.id);
   });
 
   if (fromSearch) queryEl.blur();
@@ -1132,11 +1357,31 @@ function toast(message) {
   toast._t = setTimeout(() => el.classList.remove("show"), 1600);
 }
 
+function parseRouteQuery(rawQuery) {
+  const raw = String(rawQuery || "").trim();
+  if (!raw) return [];
+  if (/\bto\b/i.test(raw) || raw.includes(",") || raw.includes("→") || raw.includes(">")) {
+    return raw
+      .split(/\s*(?:to|,|→|>)+\s*/i)
+      .map((part) => part.trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
 function runSearch(rawQuery, autoOpen) {
   const q = String(rawQuery || "").trim();
   clearBtn.hidden = !q;
   if (!q) {
     showHome();
+    return;
+  }
+
+  const routeIds = parseRouteQuery(q);
+  if (routeIds.length >= 2) {
+    setMode("route");
+    fillRouteStops(routeIds);
+    calculateRoute();
     return;
   }
 
@@ -1152,6 +1397,144 @@ function runSearch(rawQuery, autoOpen) {
   }
 
   showResults(items, q);
+}
+
+function setMode(mode) {
+  const isRoute = mode === "route";
+  lookupModeBtn.classList.toggle("active", !isRoute);
+  routeModeBtn.classList.toggle("active", isRoute);
+  searchForm.hidden = isRoute;
+  routeForm.hidden = !isRoute;
+  if (isRoute) {
+    if (!routeStopsEl.children.length) renderRouteStops(["", ""]);
+    homeState.hidden = true;
+    resultsState.hidden = true;
+    detailState.hidden = true;
+    if (routeState.innerHTML) routeState.hidden = false;
+  } else if (queryEl.value.trim()) {
+    runSearch(queryEl.value, false);
+  } else {
+    showHome();
+  }
+}
+
+function renderRouteStops(values) {
+  const list = values && values.length ? values.slice(0, MAX_STOPS) : ["", ""];
+  while (list.length < 2) list.push("");
+  routeStopsEl.innerHTML = list
+    .map((value, index) => {
+      return (
+        '<div class="route-stop">' +
+        '<span class="route-num">' +
+        (index + 1) +
+        "</span>" +
+        '<input type="text" inputmode="text" enterkeyhint="next" spellcheck="false" autocapitalize="characters" placeholder="Site ' +
+        (index + 1) +
+        ' ID" value="' +
+        escapeHtml(value) +
+        '" />' +
+        '<button type="button" class="stop-remove" data-remove="' +
+        index +
+        '" aria-label="Remove site"' +
+        (list.length <= 2 ? " hidden" : "") +
+        ">×</button>" +
+        "</div>"
+      );
+    })
+    .join("");
+}
+
+function routeInputs() {
+  return Array.from(routeStopsEl.querySelectorAll("input"));
+}
+
+function fillRouteStops(ids) {
+  renderRouteStops(ids);
+}
+
+function addSiteToRoute(siteId) {
+  setMode("route");
+  const values = routeInputs().map((input) => input.value.trim());
+  const empty = values.findIndex((value) => !value);
+  if (empty >= 0) values[empty] = siteId;
+  else if (values.length < MAX_STOPS) values.push(siteId);
+  else values[values.length - 1] = siteId;
+  renderRouteStops(values);
+  toast("Added " + siteId + " to route");
+}
+
+function calculateRoute() {
+  const values = routeInputs().map((input) => input.value.trim());
+  const found = [];
+  let valid = true;
+
+  routeInputs().forEach((input, index) => {
+    const site = findExactSite(values[index]);
+    input.classList.toggle("bad", !site);
+    if (site) found.push(site);
+    else valid = false;
+  });
+
+  if (values.filter(Boolean).length < 2) {
+    toast("Enter at least two site IDs");
+    return;
+  }
+
+  if (!valid) {
+    toast("Fix the red site IDs");
+    return;
+  }
+
+  const hops = [];
+  let totalKm = 0;
+  for (let i = 0; i < found.length - 1; i++) {
+    const km = haversineKm(found[i], found[i + 1]);
+    hops.push({ from: found[i], to: found[i + 1], km: km });
+    totalKm += km;
+  }
+
+  homeState.hidden = true;
+  resultsState.hidden = true;
+  detailState.hidden = true;
+  routeState.hidden = false;
+
+  routeState.innerHTML =
+    '<article class="route-total"><dt>Total distance</dt><dd>' +
+    formatDistance(totalKm) +
+    "</dd></article>" +
+    hops
+      .map(
+        (hop, index) =>
+          '<div class="route-hop">' +
+          '<div class="from-to">' +
+          (index + 1) +
+          ". " +
+          escapeHtml(hop.from.id) +
+          " → " +
+          escapeHtml(hop.to.id) +
+          '</div><div class="km">' +
+          formatDistance(hop.km) +
+          '</div><p class="meta">' +
+          escapeHtml(hop.from.cand) +
+          " to " +
+          escapeHtml(hop.to.cand) +
+          "</p></div>"
+      )
+      .join("") +
+    '<p class="meta" style="margin: 4px 2px 10px">Point-to-point distance.</p>' +
+    '<div class="actions">' +
+    '<a class="btn maps" target="_blank" rel="noopener" href="' +
+    directionsUrl(found) +
+    '">Google Maps</a>' +
+    '<a class="btn whatsapp" target="_blank" rel="noopener" href="https://wa.me/?text=' +
+    encodeURIComponent(routeShareMessage(found, hops, totalKm)) +
+    '">WhatsApp</a></div>' +
+    '<div class="actions-secondary">' +
+    '<button type="button" class="btn ghost" id="copyRoute">Copy distances</button></div>';
+
+  document.getElementById("copyRoute").addEventListener("click", () => {
+    copyText(routeShareMessage(found, hops, totalKm), "Route copied");
+  });
 }
 
 queryEl.addEventListener("input", () => runSearch(queryEl.value, false));
@@ -1174,6 +1557,32 @@ function onChipClick(event) {
 
 recentList.addEventListener("click", onChipClick);
 if (starterChips) starterChips.addEventListener("click", onChipClick);
+
+lookupModeBtn.addEventListener("click", () => setMode("lookup"));
+routeModeBtn.addEventListener("click", () => setMode("route"));
+addStopBtn.addEventListener("click", () => {
+  const values = routeInputs().map((input) => input.value);
+  if (values.length >= MAX_STOPS) {
+    toast("Maximum " + MAX_STOPS + " sites");
+    return;
+  }
+  values.push("");
+  renderRouteStops(values);
+  const inputs = routeInputs();
+  inputs[inputs.length - 1].focus();
+});
+routeStopsEl.addEventListener("click", (event) => {
+  const btn = event.target.closest("[data-remove]");
+  if (!btn) return;
+  const values = routeInputs().map((input) => input.value);
+  if (values.length <= 2) return;
+  values.splice(Number(btn.getAttribute("data-remove")), 1);
+  renderRouteStops(values);
+});
+routeForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  calculateRoute();
+});
 
 function currentTheme() {
   try {
